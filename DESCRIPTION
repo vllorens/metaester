@@ -1,22 +1,22 @@
 Package: metaester
 Type: Package
 Title: Simulate metatranscriptomics datasets 
-Version: 0.1.0
-Author: Verónica Lloréns-Rico
-Maintainer: Verónica Lloréns-Rico <veronica.llorensrico@kuleuven.vib.be>
+Version: 0.0.0.9000
+Authors@R: person("Verónica", "Lloréns-Rico", email = "veronica.llorensrico@kuleuven.vib.be",
+  role = c("aut", "cre"))
 Description: This package can be used to simulate metatranscriptomics datasets for mapping and differential expression evaluation with different tools.
     It distributes the total number of reads per sample among the different species simulated, and then among the different genes for each species, and optionally can set
     differentially expressed genes.
-
+URL: https://github.com/vllorens/metaester
+BugReports: https://github.com/vllorens/metaester/issues
 License: GNU General Public License v3.0
 Encoding: UTF-8
 LazyData: true
-
 Imports:
     seqinr (>= 3.4-5),
     pasilla (>= 1.6.0),
     fitdistrplus (>= 1.0-9),
     polyester (>= 1.18.0)
-    
 Remotes:
     alysafrazee/polyester
+RoxygenNote: 6.0.1
