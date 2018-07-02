@@ -2,27 +2,45 @@
 % Please edit documentation in R/utils.R
 \name{empiricalComposition}
 \alias{empiricalComposition}
-\title{Define the composition of all samples in a metatranscriptomics dataset}
+\title{Use real data to fit an empirical distribution and generate a composition matrix
+   following this distribution.}
 \usage{
 empiricalComposition(empiricalSeed = NULL, genomes, nReplicates)
 }
 \arguments{
-\item{empiricalSeed}{A single number or a numeric vector of length equal to nReplicates. Indicates the random seed to assign the reads to different species in each sample. If NULL or a single number, the same seed will be applied to all samples so that they will have the same composition, with differences only due to random sampling.}
+\item{empiricalSeed}{A single number or a numeric vector of length equal to
+nReplicates. Indicates the random seed to assign the reads to different species
+in each sample. If NULL or a single number, the same seed will be applied to all
+samples so that they will have the same composition, with differences only due to
+random sampling.}
 
-\item{genomes}{Character vector of genome names or genome IDs for the genomes to include in the simulation.}
+\item{genomes}{Character vector of genome names or genome IDs for the genomes to
+include in the simulation.}
 
 \item{nReplicates}{A number, indicating the total samples (cases and controls).}
 }
 \value{
-A microbial composition matrix of \code{nReplicates} columns and \code{nrow(genomes)} rows.
+A microbial composition matrix of \code{nReplicates} columns and
+    \code{nrow(genomes)} rows.
 }
 \description{
-\code{empiricalComposition} returns a composition matrix with rows as species/genomes and columns as samples (cases or controls). This composition matrix follows an empirical distribution which has been fitted from real metatranscriptomics datasets (Metatrans paper).
-This is an internal function and should not be called directly by the user, only internally by the \code{compositionGenomesMetaT} function
+\code{empiricalComposition} returns a composition matrix with rows as species/genomes
+   and columns as samples (cases or controls). This composition matrix follows an
+   empirical distribution which has been fitted from real metatranscriptomics datasets
+   See References for the origin of the real datasets.
+   This is an internal function and should not be called directly by the user, only
+   internally by the \code{compositionGenomesMetaT} function
 }
 \examples{
-genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis", "R. obeum")
+# define a list of genomes to simulate
+genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis",
+                       "R. obeum")
+# obtain the empirical composition matrix for this 5 species
 empiricalComposition(empiricalSeed=1, genomes=genomesToSimulate, nReplicates=10)
+}
+\references{
+Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
+  Scientific Reports 6, Article number: 26447
 }
 \seealso{
 compositionGenomesMetaT

@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 metaester.Rproj
+*.DS_Store

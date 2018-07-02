@@ -6,7 +6,15 @@
 \usage{
 loadPasilla()
 }
+\value{
+Matrix of count values for the untreated samples of the Pasilla dataset, each column representing one sample and each row one gene
+}
 \description{
 \code{loadPasilla} imports the Pasilla dataset from the corresponding package.
+}
+\details{
 This is an internal function and should not be called directly by the user, only internally by the \code{simulateSingleGenome} function
+}
+\examples{
+counts_pasilla <- loadPasilla()
 }

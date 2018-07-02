@@ -4,15 +4,17 @@
 #'
 #' This is an internal function and should not be called directly by the user, only internally by the \code{simulateSingleGenome} function
 #'
-#' @import Pasilla
-#' @value Matrix of count values for the untreated samples of the Pasilla dataset, each column representing one sample and each row one gene
-#' @example
+#' @import pasilla
+#' @import utils
+#' @export
+#' @return Matrix of count values for the untreated samples of the Pasilla dataset, each column representing one sample and each row one gene
+#' @examples
 #' counts_pasilla <- loadPasilla()
 ## TODO: find another public dataset that is better suitable (i.e. prokaryotic?)
 loadPasilla=function(){
   pasCts = system.file("extdata","pasilla_gene_counts.tsv",package="pasilla", mustWork=TRUE)
   countsPasilla = read.table(pasCts, header = T, stringsAsFactors=F, sep="\t")
-  countsPasilla=countsPasilla[,grep(colnames(countsPasilla),patter="untreated")]
+  countsPasilla=countsPasilla[,grep(colnames(countsPasilla),pattern="untreated")]
   countsPasilla=cbind(countsPasilla, apply(countsPasilla, MARGIN=1, FUN=function(X){length(which(X>0))}))
   countsPasilla=countsPasilla[countsPasilla[,ncol(countsPasilla)]>1,]
   countsPasilla=unique(countsPasilla)
@@ -22,22 +24,42 @@ loadPasilla=function(){
 
 
 
-#' Define the composition of all samples in a metatranscriptomics dataset
+#' Use real data to fit an empirical distribution and generate a composition matrix
+#'    following this distribution.
 #'
-#' \code{empiricalComposition} returns a composition matrix with rows as species/genomes and columns as samples (cases or controls). This composition matrix follows an empirical distribution which has been fitted from real metatranscriptomics datasets (Metatrans paper).
-#' This is an internal function and should not be called directly by the user, only internally by the \code{compositionGenomesMetaT} function
+#' \code{empiricalComposition} returns a composition matrix with rows as species/genomes
+#'    and columns as samples (cases or controls). This composition matrix follows an
+#'    empirical distribution which has been fitted from real metatranscriptomics datasets
+#'    See References for the origin of the real datasets.
+#'    This is an internal function and should not be called directly by the user, only
+#'    internally by the \code{compositionGenomesMetaT} function
 #'
-#' @param empiricalSeed A single number or a numeric vector of length equal to nReplicates. Indicates the random seed to assign the reads to different species in each sample. If NULL or a single number, the same seed will be applied to all samples so that they will have the same composition, with differences only due to random sampling.
-#' @param genomes Character vector of genome names or genome IDs for the genomes to include in the simulation.
+#' @param empiricalSeed A single number or a numeric vector of length equal to
+#'     nReplicates. Indicates the random seed to assign the reads to different species
+#'     in each sample. If NULL or a single number, the same seed will be applied to all
+#'     samples so that they will have the same composition, with differences only due to
+#'     random sampling.
+#' @param genomes Character vector of genome names or genome IDs for the genomes to
+#'     include in the simulation.
 #' @param nReplicates A number, indicating the total samples (cases and controls).
-#' @return A microbial composition matrix of \code{nReplicates} columns and \code{nrow(genomes)} rows.
+#' @importFrom fitdistrplus fitdist
+#' @import stats
+#' @import utils
+#' @export
+#' @return A microbial composition matrix of \code{nReplicates} columns and
+#'     \code{nrow(genomes)} rows.
+#' @seealso compositionGenomesMetaT
+#' @references
+#'   Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
+#'   Scientific Reports 6, Article number: 26447
 #' @examples
 #' # define a list of genomes to simulate
-#' genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis", "R. obeum")
+#' genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis",
+#'                        "R. obeum")
 #' # obtain the empirical composition matrix for this 5 species
 #' empiricalComposition(empiricalSeed=1, genomes=genomesToSimulate, nReplicates=10)
-#' @seealso compositionGenomesMetaT
 empiricalComposition <- function(empiricalSeed = NULL, genomes, nReplicates){
+  # 1. build empty composition matrix -------------------------------
   compositionMatrix <- data.frame(row.names = genomes)
   if (is.null(empiricalSeed)){
     empiricalSeed <- rep(1, times = nReplicates)
@@ -48,25 +70,24 @@ empiricalComposition <- function(empiricalSeed = NULL, genomes, nReplicates){
     break
   }
 
-  # 1. load data -----------------------------------------------------
-  load("data/speciesDist.RData")
-
   # 2. remove those species present in less than one sample ----------
+  # speciesDistribution is the object having the composition matrix based on real datasets,
+  # used to fit the empirical distribution
   zerovector<- c()
-  for (i in 1:nrow(ssmatrix_real)){
-    total_zeros <- sum(ssmatrix_real[i, ] == 0)
+  for (i in 1:nrow(speciesDistribution)){
+    total_zeros <- sum(speciesDistribution[i, ] == 0)
     zerovector <- c(zerovector, total_zeros)
   }
-  to_remove <- which(zerovector == ncol(ssmatrix_real) | zerovector == ncol(ssmatrix_real) -1)
-  ssmatrix_real <- ssmatrix_real[-to_remove, ]
+  to_remove <- which(zerovector == ncol(speciesDistribution) | zerovector == ncol(speciesDistribution) -1)
+  speciesDistribution <- speciesDistribution[-to_remove, ]
 
   # 3. check the parameters of the negative binomial distribution ----
   r_vector <- c()
   mu_vector <- c()
   p_vector <- c()
 
-  for (i in 1:nrow(ssmatrix_real)){
-    fitted <- fitdist(as.vector(c(unlist(ssmatrix_real[i,]))), "nbinom")
+  for (i in 1:nrow(speciesDistribution)){
+    fitted <- fitdist(as.vector(c(unlist(speciesDistribution[i,]))), "nbinom")
     r <- as.vector(fitted[[1]][1])
     r_vector <- c(r_vector, r)
     mu <- as.vector(fitted[[1]][2])
