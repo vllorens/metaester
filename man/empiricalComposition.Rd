@@ -31,17 +31,10 @@ A microbial composition matrix of \code{nReplicates} columns and
    This is an internal function and should not be called directly by the user, only
    internally by the \code{compositionGenomesMetaT} function
 }
-\examples{
-# define a list of genomes to simulate
-genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis",
-                       "R. obeum")
-# obtain the empirical composition matrix for this 5 species
-empiricalComposition(empiricalSeed=1, genomes=genomesToSimulate, nReplicates=10)
-}
 \references{
 Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
   Scientific Reports 6, Article number: 26447
 }
 \seealso{
-compositionGenomesMetaT
+\code{\link{compositionGenomesMetaT}}
 }

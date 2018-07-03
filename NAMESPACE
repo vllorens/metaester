@@ -3,6 +3,8 @@
 export(compositionGenomesMetaT)
 export(empiricalComposition)
 export(loadPasilla)
+export(sampleReads)
+export(simulateFastaReads)
 export(simulateMetaTranscriptome)
 export(simulateSingleGenome)
 import(pasilla)

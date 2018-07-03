@@ -257,19 +257,32 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 #'                                                foldChanges=c(0.5,1,2),
 #'                                                foldProbs=c(10,80,10),
 #'                                                nSamples=5, nControls=5)
-simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatrix=NULL, DE=F, foldChanges=NULL, foldProbs=NULL, nSamples=NULL, nControls=NULL, seed=42){
-  simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples, nControls=nControls)
+simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatrix=NULL,
+                                      DE=F, foldChanges=NULL, foldProbs=NULL,
+                                      nSamples=NULL, nControls=NULL, seed=42){
+  simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples,
+                           nControls=nControls)
   for(i in 1:nrow(genomeReadMatrix)){
     genomeName <- rownames(genomeReadMatrix)[i]
-    fastaFile <- c(file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fa", sep="")),
-                file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fasta", sep="")),
-                file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fna", sep="")),
-                file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fa", sep="")),
-                file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fasta", sep="")),
-                file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fna", sep="")))  ## check all possible fasta file extensions
-    fastaFile <- fastaFile[file.exists(fastaFile)] ## select only the one existing
-    singleGenome <- simulateSingleGenome(genomeName, fasta=fastaFile, genomeReadMatrix, modelMatrix, DE, foldChanges, foldProbs, nSamples, nControls, seed)
-    simulatedDataSet$simulationData <- rbind(simulatedDataSet$simulationData, singleGenome$simulationData)
+    # check all possible fasta file extensions
+    fastaFile <- c(file.path(genomeFileDir,
+                             paste(rownames(genomeReadMatrix)[i],".fa", sep="")),
+                  file.path(genomeFileDir,
+                          paste(rownames(genomeReadMatrix)[i],".fasta", sep="")),
+                  file.path(genomeFileDir,
+                          paste(rownames(genomeReadMatrix)[i],".fna", sep="")),
+                  file.path(genomeFileDir,
+                          paste(rownames(genomeReadMatrix)[i],".genes.fa", sep="")),
+                  file.path(genomeFileDir,
+                          paste(rownames(genomeReadMatrix)[i],".genes.fasta", sep="")),
+                  file.path(genomeFileDir,
+                          paste(rownames(genomeReadMatrix)[i],".genes.fna", sep="")))
+    fastaFile <- fastaFile[file.exists(fastaFile)] ## select only the ones existing
+    singleGenome <- simulateSingleGenome(genomeName, fasta=fastaFile, genomeReadMatrix,
+                                         modelMatrix, DE, foldChanges, foldProbs,
+                                         nSamples, nControls, seed)
+    simulatedDataSet$simulationData <- rbind(simulatedDataSet$simulationData,
+                                             singleGenome$simulationData)
     simulatedDataSet$DEgenes <- rbind(simulatedDataSet$DEgenes, singleGenome$DEgenes)
   }
   return(simulatedDataSet)
@@ -318,8 +331,6 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #' @param strand_specific Logical. Parameter to be passed to the
 #'    \code{simulate_experiment_countmat} function. Should the reads be strand-specific?
 #'    Check documentation in the polyester package.
-#' @param ... Further arguments to be passed to the \code{simulate_experiment_countmat}
-#'    function. Check documentation in the polyester package.
 #' @details  This function is a wrapper to the \code{simulate_experiment_countmat}
 #'    function from the polyester package. Reads can be simulated from a multifasta
 #'    file containing one sequence for each gene. Functionality to work with full genomes
@@ -363,6 +374,7 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #' # overexpression and 10% have a 0.5-fold depletion.
 #' # No composition matrix is provided, so the one from the pasilla dataset will be used.
 #' # As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+#' genomesFolder = system.file("extdata", package = "metaester", mustWork = TRUE)
 #' metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
 #'                                                genomeReadMatrix=compMatrix, DE=TRUE,
 #'                                                foldChanges=c(0.5,1,2),
@@ -370,13 +382,11 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #'                                                nSamples=5, nControls=5)
 #'
 #' # Finally, generate the fasta files and write them to the output directory
-#' simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
-#'                    outdir=".")
+#' \donttest{simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
+#'                    outdir=".")}
 simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T,
                                seed=42, distr="empirical", error_model="illumina5",
-                               bias="rnaf", strand_specific=T, ...){
-  extras = list(...)
-  extras = .check_extras(extras, paired, total.n = ncol(readmat))
+                               bias="rnaf", strand_specific=T){
   ## if pre-existing, remove fasta file with all genomes
   fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
   if(file.exists(fastaFullFile)){
@@ -401,7 +411,7 @@ simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", pair
   # simulate fasta readsand write output to outdir
   simulate_experiment_countmat(fasta=fastaFullFile, readmat=countMatrix, outdir=outdir,
                                paired=paired, seed=seed, distr=distr,
-                               error_model=error_model, bias=bias, strand_specific=T, extras)
+                               error_model=error_model, bias=bias, strand_specific=T)
   system(paste("rm", fastaFullFile, sep=" "))
   out_countMatrix <- file.path(outdir, "countMatrix.txt")
   out_DEgenes <- file.path(outdir, "DEgenes.txt")

@@ -21,7 +21,7 @@ per genome and per sample. Can be obtained using the function
 \item{modelMatrix}{A composition matrix of gene expression, in which rows represent
 genes and columns represent replicates. User can provide one of their own,
 otherwise the matrix from the Pasilla dataset will be used. It's used to fit a
-zero-inflated negative binomial and set the parameters to randomly assign gene
+zero-inflated negative binomial and set the parameters to randomly n gene
 expression to the genes from the microbial genome.}
 
 \item{DE}{Logical, whether or not to simulate differential expression between cases
@@ -94,7 +94,7 @@ metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
 # incorporating differential expression: 10\% genes (in each bacterium) have a 2-fold
 # overexpression and 10\% have a 0.5-fold depletion.
 # No composition matrix is provided, so the one from the pasilla dataset will be used.
-# As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+# As there are 10 samples in the count matrix, we n 5 cases and 5 controls.
 metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
                                                genomeReadMatrix=compMatrix, DE=TRUE,
                                                foldChanges=c(0.5,1,2),

@@ -8,8 +8,6 @@
 #' @import utils
 #' @export
 #' @return Matrix of count values for the untreated samples of the Pasilla dataset, each column representing one sample and each row one gene
-#' @examples
-#' counts_pasilla <- loadPasilla()
 ## TODO: find another public dataset that is better suitable (i.e. prokaryotic?)
 loadPasilla=function(){
   pasCts = system.file("extdata","pasilla_gene_counts.tsv",package="pasilla", mustWork=TRUE)
@@ -48,16 +46,10 @@ loadPasilla=function(){
 #' @export
 #' @return A microbial composition matrix of \code{nReplicates} columns and
 #'     \code{nrow(genomes)} rows.
-#' @seealso compositionGenomesMetaT
+#' @seealso \code{\link{compositionGenomesMetaT}}
 #' @references
 #'   Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
 #'   Scientific Reports 6, Article number: 26447
-#' @examples
-#' # define a list of genomes to simulate
-#' genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis",
-#'                        "R. obeum")
-#' # obtain the empirical composition matrix for this 5 species
-#' empiricalComposition(empiricalSeed=1, genomes=genomesToSimulate, nReplicates=10)
 empiricalComposition <- function(empiricalSeed = NULL, genomes, nReplicates){
   # 1. build empty composition matrix -------------------------------
   compositionMatrix <- data.frame(row.names = genomes)
@@ -112,7 +104,24 @@ empiricalComposition <- function(empiricalSeed = NULL, genomes, nReplicates){
 
 
 
-
+#' Scale the number of simulated reads to the actual number per genome
+#'
+#' \code{sampleReads} returns a composition matrix scaled to the actual reads
+#'    assigned to a genome. The function \code{simulateSingleGenome} overestimates the
+#'    number of reads, because of this we sample with replacement to obtain the number
+#'    of reads per genome required.
+#'    This is an internal function and should not be called directly by the user, only
+#'    internally by the \code{simulateSingleGenome} function
+#'
+#' @param seed Random seed for the sampling.
+#' @param countMatrix Gene count matrix to adjust for the number of total reads per sample.
+#' @param readNumber A number, indicating the total samples (cases and controls).
+#' @import stats
+#' @import utils
+#' @export
+#' @return A gene count matrix, in which the sum of the reads per sample is equal to the
+#'     number of reads specified for a specific genome
+#' @seealso \code{\link{simulateSingleGenome}}
 sampleReads <- function(countMatrix, readNumber, seed=42){ # downsize the number of simulated reads to the actual number per genome
   reducedReadMatrix <- data.frame(row.names = row.names(countMatrix))
   if (length(readNumber) != 1 & length(readNumber) != ncol(countMatrix)){
@@ -129,4 +138,6 @@ sampleReads <- function(countMatrix, readNumber, seed=42){ # downsize the number
   colnames(reducedReadMatrix) <- colnames(countMatrix)
   return(reducedReadMatrix)
 }
+
+
 

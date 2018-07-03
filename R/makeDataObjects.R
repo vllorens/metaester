@@ -1,3 +1,4 @@
+# script to generate data objects available in this package
 # creates data object for the species distribution
 
 speciesDistribution=get(load("inst/extdata/speciesDist.RData"))

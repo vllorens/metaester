@@ -9,42 +9,43 @@ simulateSingleGenome(genomeName, fasta, genomeReadMatrix, modelMatrix = NULL,
   nControls = NULL, seed = 42)
 }
 \arguments{
-\item{genomeName}{Name of the genome to be simulated. It should match the basename
-of the fasta file for this genome}
+\item{genomeName}{Name of the genome to be simulated. It should match the
+basename of the fasta file for this genome}
 
-\item{fasta}{Either the path of the multi-fasta file containing the sequences of
-all genes of the selected genome, or the fasta object read with the function
-\code{read.fasta} from the \code{seqinr} package.
+\item{fasta}{Either the path of the multi-fasta file containing the sequences
+of all genes of the selected genome, or the fasta object read with the
+function \code{read.fasta} from the \code{seqinr} package.
 The names of the genes will be taken from the fasta headers}
 
-\item{genomeReadMatrix}{Microbial composition matrix containing the number of reads
-per genome and per sample. Can be obtained using the function
+\item{genomeReadMatrix}{Microbial composition matrix containing the number of
+reads per genome and per sample. Can be obtained using the function
 \code{compositionGenomesMetaT}}
 
-\item{modelMatrix}{A composition matrix of gene expression, in which rows represent
-genes and columns represent replicates. User can provide one of their own,
-otherwise the matrix from the Pasilla dataset will be used. It's used to fit a
-zero-inflated negative binomial and set the parameters to randomly assign gene
-expression to the genes from the microbial genome.}
+\item{modelMatrix}{A composition matrix of gene expression, in which rows
+represent genes and columns represent replicates. User can provide one of
+their own, otherwise the matrix from the Pasilla dataset will be used.
+It's usedto fit a zero-inflated negative binomial and set the parameters
+to randomly n gene expression to the genes from the microbial genome.}
 
-\item{DE}{Logical, whether or not to simulate differential expression between cases
-and controls (defaults to FALSE)}
+\item{DE}{Logical, whether or not to simulate differential expression between
+cases and controls (defaults to FALSE)}
 
-\item{foldChanges}{Numeric vector, containing the fold changes to simulate. It should
-contain the value 1, for genes which are not differentially expressed. Required if
-DE set to TRUE}
+\item{foldChanges}{Numeric vector, containing the fold changes to simulate.
+It should contain the value 1, for genes which are not differentially
+expressed. Required if DE set to TRUE}
 
-\item{foldProbs}{Numeric vector, containing the probabilities for each of the fold-
-changes specified in the parameter \code{foldChanges}. Required if DE is set to
-TRUE. See examples}
+\item{foldProbs}{Numeric vector, containing the probabilities for each of the
+fold-changes specified in the parameter \code{foldChanges}. Required if DE
+is set to TRUE. See examples}
 
-\item{nSamples}{An integer, must be specified if DE is set to TRUE. Number of cases
-in the simulated experiment. nSamples + nControls must be equal to the number of
-columns in the composition matrix \code{genomeReadMatrix}}
+\item{nSamples}{An integer, must be specified if DE is set to TRUE. Number of
+cases in the simulated experiment. nSamples + nControls must be equal to
+the number of columns in the composition matrix \code{genomeReadMatrix}}
 
-\item{nControls}{An integer, must be specified if DE is set to TRUE. Number of controls
-in the simulated experiment. nSamples + nControls must be equal to the number of
-columns in the composition matrix \code{genomeReadMatrix}}
+\item{nControls}{An integer, must be specified if DE is set to TRUE. Number
+of controls in the simulated experiment. nSamples + nControls must be
+equal to the number of columns in the composition matrix
+\code{genomeReadMatrix}}
 
 \item{seed}{An integer, sets the random seed for the read distribution.}
 }
@@ -59,16 +60,17 @@ A list, containing the following elements:
      indicating gene names and the second column the fold change applied to each gene
 }
 \description{
-\code{simulateSingleGenome} simulates a gene count matrix for a single genome. This is
-   a wrapper for the function \code{create_read_numbers} in the polyester package.
-   Users should not call it directly but should only be called within the
-   \code{simulateMetaTranscriptome} function
+\code{simulateSingleGenome} simulates a gene count matrix for a single
+   genome. This is a wrapper for the function \code{create_read_numbers} in
+   the polyester package. Users should not call it directly but should only
+   be called within the \code{simulateMetaTranscriptome} function
 }
 \details{
-This function is a wrapper for the \code{create_read_numbers} function from
-   the polyester package. Takes a gene count matrix to fit a zero-inflated negative
-   binomial distribution, then uses this as a model to randomly assign gene expression
-   to each of the genes from the genome, as specified in a fasta file
+This function is a wrapper for the \code{create_read_numbers}
+   function from the polyester package. Takes a gene count matrix to fit a
+   zero-inflated negative binomial distribution, then uses this as a model to
+   randomly n gene expression to each of the genes from the genome, as
+   specified in a fasta file
 }
 \examples{
 # First, define a list of genomes to simulate. The names of these genomes need to match
@@ -96,7 +98,7 @@ countMatrix_efaecalis <- simulateSingleGenome(genomeName="efaecalis", fasta=efae
 # Obtain the gene expression matrix for B. obeum, incorporating differential
 # expression: 10\% genes have a 2-fold overexpression and 10\% have a 0.5-fold depletion.
 # No composition matrix is provided, so the one from the pasilla dataset will be used.
-# As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+# As there are 10 samples in the count matrix, we n 5 cases and 5 controls.
 data(bobeum)
 countMatrix_bobeum <- simulateSingleGenome(genomeName="bobeum", fasta=bobeum,
                                         genomeReadMatrix=compMatrix, DE=TRUE,
@@ -104,9 +106,9 @@ countMatrix_bobeum <- simulateSingleGenome(genomeName="bobeum", fasta=bobeum,
                                         nSamples=5, nControls=5)
 }
 \references{
-- Huber W, Reyes A (2018). pasilla: Data package with per-exon and per-gene read
-   counts of RNA-seq samples of Pasilla knock-down by Brooks et al. R package version
-   1.8.0
-   - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek (2018).
-   polyester: Simulate RNA-seq reads. R package version 1.16.0.
+- Huber W, Reyes A (2018). pasilla: Data package with per-exon and
+   per-gene read counts of RNA-seq samples of Pasilla knock-down by Brooks et
+   al. R package version 1.8.0
+   - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek
+   (2018). polyester: Simulate RNA-seq reads. R package version 1.16.0.
 }
