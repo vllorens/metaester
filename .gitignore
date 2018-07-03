@@ -4,3 +4,4 @@
 .Ruserdata
 metaester.Rproj
 *.DS_Store
+inst/doc
