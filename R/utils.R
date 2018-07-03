@@ -108,3 +108,25 @@ empiricalComposition <- function(empiricalSeed = NULL, genomes, nReplicates){
   return(compositionMatrix)
 }
 
+
+
+
+
+
+sampleReads <- function(countMatrix, readNumber, seed=42){ # downsize the number of simulated reads to the actual number per genome
+  reducedReadMatrix <- data.frame(row.names = row.names(countMatrix))
+  if (length(readNumber) != 1 & length(readNumber) != ncol(countMatrix)){
+    print("Error! You must provide an integer or a vector of length equal to the number of columns in countMatrix")
+  }
+  if (length(readNumber) == 1){
+    readNumber <- rep(readNumber, times=ncol(countMatrix))
+  }
+  for (col in 1:ncol(countMatrix)){
+    temp <- sample(rownames(countMatrix), size = readNumber[col],prob=countMatrix[,col], replace = T)
+    reducedReadMatrix <- cbind(reducedReadMatrix,table(temp)[rownames(reducedReadMatrix)])
+  }
+  reducedReadMatrix <- reducedReadMatrix[,c(F,T)]
+  colnames(reducedReadMatrix) <- colnames(countMatrix)
+  return(reducedReadMatrix)
+}
+

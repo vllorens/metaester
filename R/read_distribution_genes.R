@@ -1,63 +1,94 @@
 
 #' Calculate reads for one genome, for all samples
 #'
-#' \code{compositionGenomesMetaT} returns a composition matrix with rows as species/
-#'    genomes and columns as samples (cases or controls)
-#'
-#' @param genomename A character string indicating which method to use to determine
-#'    the composition of the matrix. Any of "custom", "empirical" or "even" can be used.
-#'    See "details"
-#' @param fasta A single number or a numeric vector of length equal to
-#'    nReplicates. Indicates the random seed to assign the reads to different species
-#'    in each sample. If NULL or a single number, the same seed will be applied to all
-#'    samples so that they will have the same composition, with differences only due to
-#'    random sampling
-#' @param genomeReadMatrix Composition matrix, as calculated by the function
-#'    \code{compositionGenomesMetaT}.
-#' @param modelMatrix A composition matrix predefined by the user, in which rows
-#'    represent species and columns represent samples. Id user provides a composition
-#'    matrix, this function only performs the random sampling to scale to the number of
-#'    reads desired. Defaults to NULL
+#' \code{simulateSingleGenome} simulates a gene count matrix for a single genome. This is
+#'    a wrapper for the function X in the polyester package. Users should not call it
+#'    directly but should only be called within the \code{simulateMetaTranscriptome}
+#'    function
+#' @param genomeName Name of the genome to be simulated. It should match the basename
+#'    of the fasta file for this genome
+#' @param fasta Either the path of the multi-fasta file containing the sequences of
+#'    all genes of the selected genome, or the fasta object read with the function
+#'    \code{read.fasta} from the \code{seqinr} package.
+#'    The names of the genes will be taken from the fasta headers
+#' @param genomeReadMatrix Microbial composition matrix containing the number of reads
+#'    per genome and per sample. Can be obtained using the function
+#'    \code{compositionGenomesMetaT}
+#' @param modelMatrix A composition matrix of gene expression, in which rows represent
+#'    genes and columns represent replicates. User can provide one of their own,
+#'    otherwise the matrix from the Pasilla dataset will be used. It's used to fit a
+#'    zero-inflated negative binomial and set the parameters to randomly assign gene
+#'    expression to the genes from the microbial genome.
 #' @param DE Logical, whether or not to simulate differential expression between cases
 #'    and controls (defaults to FALSE)
-#' @param foldChanges Numeric vector, containing the fold changes to simulate
+#' @param foldChanges Numeric vector, containing the fold changes to simulate. It should
+#'    contain the value 1, for genes which are not differentially expressed. Required if
+#'    DE set to TRUE
 #' @param foldProbs Numeric vector, containing the probabilities for each of the fold-
-#'    changes specified in the parameter \code{foldChanges}. See examples.
+#'    changes specified in the parameter \code{foldChanges}. Required if DE is set to
+#'    TRUE. See examples
 #' @param nSamples An integer, must be specified if DE is set to TRUE. Number of cases
 #'    in the simulated experiment. nSamples + nControls must be equal to the number of
-#'    columns in the composition matrix
+#'    columns in the composition matrix \code{genomeReadMatrix}
 #' @param nControls An integer, must be specified if DE is set to TRUE. Number of controls
 #'    in the simulated experiment. nSamples + nControls must be equal to the number of
-#'    columns in the composition matrix
+#'    columns in the composition matrix \code{genomeReadMatrix}
 #' @param seed An integer, sets the random seed for the read distribution.
-#' @details There are three options to distribute the total reads among the different
-#'    species to simulate:
-#'    - custom: requires that the user provides a custom composition matrix and scales it
-#'    via random sampling (with replacement) to the specified number of reads in
-#'    \code{nReads}
-#'    - even: reads are distributed evenly among all the species listed in the
-#'    \code{genomes} argument.
-#'    - empirical: fits a negative binomial distribution (Vandeputte D. et al, 2017) to
-#'    a real dataset (Martinez X. et al, 2016) of metatranscriptomics data. Uses this
-#'    distribution to generate a composition matrix from the species listed in the
-#'    \code{genomes} argument.
+#' @details This function is a wrapper for the \code{create_read_numbers} function from
+#'    the polyester package. Takes a gene count matrix to fit a zero-inflated negative
+#'    binomial distribution, then uses this as a model to randomly assign gene expression
+#'    to each of the genes from the genome, as specified in a fasta file
 #' @references
-#'   Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
-#'   Scientific Reports 6, Article number: 26447
-#'   Vandeputte D. et al (2017): Quantitative microbiome profiling links gut community
-#'   variation to microbial load. Nature 551:507–511
+#'    - Huber W, Reyes A (2018). pasilla: Data package with per-exon and per-gene read
+#'    counts of RNA-seq samples of Pasilla knock-down by Brooks et al. R package version
+#'    1.8.0
+#'    - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek (2018).
+#'    polyester: Simulate RNA-seq reads. R package version 1.16.0.
 #' @import stats
 #' @import utils
+#' @import polyester
+#' @import seqinr
 #' @export
-#' @return A microbial composition matrix of \code{nReplicates} columns and
-#'     \code{nrow(genomes)} rows.
+#' @return A list, containing the following elements:
+#'    - simulationData: a data.frame with the read counts for each gene and each sample.
+#'      Each row represents a gene and each column a sample. If there is differential
+#'      expression, column names indicate whether each sample is a case or a control
+#'    - numSamples: if DE is set to TRUE, the number of cases specified, otherwise NULL
+#'    - numControls: if DE is set to TRUE, the number of controls, otherwise NULL
+#'    - DEgenes: if DE is set to TRUE, a two-column data.frame, the first column
+#'      indicating gene names and the second column the fold change applied to each gene
 #' @examples
-#' # define a list of genomes to simulate
-#' genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faecalis",
-#'                        "R. obeum")
-#' # obtain the empirical composition matrix for this 5 species
-#' compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
-#'                         genomes=genomesToSimulate, nReads=500000,nReplicates=10)
+#' # First, define a list of genomes to simulate. The names of these genomes need to match
+#' # the names of the fasta files (without the extension). The genomes used are:
+#' # - F. prausnitzii
+#' # - R. intestinalis
+#' # - L. johnsonii
+#' # - E. faecalis
+#' # - B. obeum
+#' genomesToSimulate <- c("fprausnitzii", "rintestinalis", "ljohnsonii", "efaecalis",
+#'                        "bobeum")
+#'
+#' # Then, obtain the empirical composition matrix for this 5 species
+#' compMatrix <- compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
+#'                                    genomes=genomesToSimulate, nReads=500000,
+#'                                    nReplicates=10)
+#'
+#' # Obtain the gene expression matrix for E. faecalis, assuming no differential
+#' # expression. No composition matrix is provided, so the one from the pasilla dataset
+#' # will be used
+#' data(efaecalis)
+#' countMatrix_efaecalis <- simulateSingleGenome(genomeName="efaecalis", fasta=efaecalis,
+#'                                            genomeReadMatrix=compMatrix)
+#'
+#' # Obtain the gene expression matrix for B. obeum, incorporating differential
+#' # expression: 10% genes have a 2-fold overexpression and 10% have a 0.5-fold depletion.
+#' # No composition matrix is provided, so the one from the pasilla dataset will be used.
+#' # As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+#' data(bobeum)
+#' countMatrix_bobeum <- simulateSingleGenome(genomeName="bobeum", fasta=bobeum,
+#'                                         genomeReadMatrix=compMatrix, DE=TRUE,
+#'                                         foldChanges=c(0.5,1,2), foldProbs=c(10,80,10),
+#'                                         nSamples=5, nControls=5)
 # function to calculate reads for one genome, for all samples
 simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=NULL,
                               DE=F, foldChanges=NULL, foldProbs=NULL, nSamples=NULL,
@@ -67,11 +98,17 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
   if(is.null(modelMatrix)){
     modelMatrix <- loadPasilla()
   }
-
+  # if fasta is a string, it should be the path to the fasta file
+  # if it is a list, it should be
+  if(is.character(fasta)){
+    fastaGenes <- read.fasta(fasta,as.string = TRUE)
+  } else if(is.list(fasta)){
+    fastaGenes <- fasta
+  } else{
+    print("Please provide a valid fasta argument. Check help for ?simulateSingleGenome")
+  }
   # now, randomly assign expression from some genes of the pasilla dataset
   # to the genes of the simulated bacteria
-  # set.seed(round(as.numeric(genomeID)/1000)) ----
-  fastaGenes <- read.fasta(fasta,as.string = T)
   numGenesToSimulate <- length(fastaGenes)
   countsBacteria <- modelMatrix[sample(numGenesToSimulate, replace = TRUE),]
 
@@ -80,7 +117,9 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 
   # generate new dataset, separate "controls" and "treated" samples and
   # calculate differential expression with the foldChanges and foldProbs provided
-  simData <- create_read_numbers(par$mu, par$fit, par$p0, m = numGenesToSimulate, n = ncol(genomeReadMatrix)) ## normally this creates ~5M reads per sample
+  # normally this creates ~5M reads per sample
+  simData <- create_read_numbers(par$mu, par$fit, par$p0, m = numGenesToSimulate,
+                                 n = ncol(genomeReadMatrix))
   colnames(simData) <- c(paste("sample", 1:ncol(simData), sep = "_"))
   rownames(simData) <- names(fastaGenes)
 
@@ -91,25 +130,32 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
       controlSimData <- simData[,1:nControls]
       treatedSimData <- simData[,(nControls+1):(nSamples+nControls)]
 
-      DEgenes <- sample(foldChanges, size = numGenesToSimulate, prob = foldProbs, replace=T) ## sample number of genes up/down-regulated or staying the same (thus with FC=1)
+      # sample number of genes up/down-regulated or staying the same (thus with FC=1)
+      DEgenes <- sample(foldChanges, size = numGenesToSimulate, prob = foldProbs,
+                        replace=T)
 
       treatedSimData <- round(treatedSimData*DEgenes)
 
       simData <- cbind(controlSimData, treatedSimData)
-      colnames(simData) <- c(paste("control", 1:nControls, sep="_"), paste("treated", 1:nSamples, sep="_"))
+      colnames(simData) <- c(paste("control", 1:nControls, sep="_"),
+                             paste("treated", 1:nSamples, sep="_"))
       rownames(simData) <- names(fastaGenes)
-      DEgenesNames <- cbind(names(fastaGenes), DEgenes)
+      DEgenesNames <- as.data.frame(cbind(names(fastaGenes), DEgenes), stringsAsFactors=F)
     }
   } else{
     DEgenes <- NULL
     DEgenesNames <- NULL
   }
 
-  ##now, downsize each of the samples to the corresponding number of reads
-  reducedSimData <- sampleReads(countMatrix=simData,readNumber=c(unlist(genomeReadMatrix[genomeName,]))) ## we downsize the number of reads for this genome, according to the reads of each sample
+  # now, downsize each of the samples to the corresponding number of reads
+  # we downsize the number of reads for this genome, according to the reads of each sample
+  reducedSimData <- sampleReads(countMatrix=simData,
+                                readNumber=c(unlist(genomeReadMatrix[genomeName,])))
   reducedSimData[is.na(reducedSimData)] <- 0
-  ## make final object collecting all the info from the simulation of this genome
-  simulatedGenome=list(simulationData=reducedSimData, DEgenes=DEgenesNames, numSamples=nSamples, numControls=nControls) ##TODO: check seeds and include in the info for reproducibility
+  # make final object collecting all the info from the simulation of this genome
+  simulatedGenome=list(simulationData=reducedSimData, DEgenes=DEgenesNames,
+                       numSamples=nSamples, numControls=nControls)
+  ##TODO: check seeds and include in the info for reproducibility
   return(simulatedGenome)
 }
 
@@ -117,23 +163,6 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 
 
 
-
-sampleReads <- function(countMatrix, readNumber, seed=42){ # downsize the number of simulated reads to the actual number per genome
-  reducedReadMatrix <- data.frame(row.names = row.names(countMatrix))
-  if (length(readNumber) != 1 & length(readNumber) != ncol(countMatrix)){
-    print("Error! You must provide an integer or a vector of length equal to the number of columns in countMatrix")
-  }
-  if (length(readNumber) == 1){
-    readNumber <- rep(readNumber, times=ncol(countMatrix))
-  }
-  for (col in 1:ncol(countMatrix)){
-    temp <- sample(rownames(countMatrix), size = readNumber[col],prob=countMatrix[,col], replace = T)
-    reducedReadMatrix <- cbind(reducedReadMatrix,table(temp)[rownames(reducedReadMatrix)])
-  }
-  reducedReadMatrix <- reducedReadMatrix[,c(F,T)]
-  colnames(reducedReadMatrix) <- colnames(countMatrix)
-  return(reducedReadMatrix)
-}
 
 
 
@@ -152,7 +181,7 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
     fastaFile <- fastaFile[file.exists(fastaFile)] ## select only the one existing
     singleGenome <- simulateSingleGenome(genomeName, fasta=fastaFile, genomeReadMatrix, modelMatrix, DE, foldChanges, foldProbs, nSamples, nControls, seed)
     simulatedDataSet$simulationData <- rbind(simulatedDataSet$simulationData, singleGenome$simulationData)
-    simulatedDataSet$DEgenes <- bind(simulatedDataSet$DEgenes, singleGenome$DEgenes)
+    simulatedDataSet$DEgenes <- rbind(simulatedDataSet$DEgenes, singleGenome$DEgenes)
   }
   return(simulatedDataSet)
 }
@@ -162,7 +191,11 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 
 
 
-## TODO: set class "simulatedDataSet" to store the info of the simulation and replace the list structure // check how to initialize an empty instance of this class
+# TODO: set class "simulatedDataSet" to store the info of the simulation and replace the
+# list structure // check how to initialize an empty instance of this class
+# TODO: allow to generate the simulations with the entire genome and the *gff annotation
+# file too (currently only with the genes fasta). Does polyester have this function?
+# If so, write a wrapper for it.
 ##  write wrapper for the simulate_experiment_countmat function in the polyester package
 simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T, seed=42, distr="empirical", error_model="illumina5", bias="rnaf", strand_specific=T){
   ## if pre-existing, remove fasta file with all genomes

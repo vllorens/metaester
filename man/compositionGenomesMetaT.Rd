@@ -39,7 +39,20 @@ A microbial composition matrix of \code{nReplicates} columns and
 }
 \description{
 \code{compositionGenomesMetaT} returns a composition matrix with rows as species/
-    genomes and columns as samples (cases or controls)
+   genomes and columns as samples (cases or controls)
+}
+\details{
+There are three options to distribute the total reads among the different
+   species to simulate:
+   - custom: requires that the user provides a custom composition matrix and scales it
+   via random sampling (with replacement) to the specified number of reads in
+   \code{nReads}
+   - even: reads are distributed evenly among all the species listed in the
+   \code{genomes} argument.
+   - empirical: fits a negative binomial distribution (Vandeputte D. et al, 2017) to
+   a real dataset (Martinez X. et al, 2016) of metatranscriptomics data. Uses this
+   distribution to generate a composition matrix from the species listed in the
+   \code{genomes} argument.
 }
 \examples{
 # define a list of genomes to simulate
@@ -48,4 +61,10 @@ genomesToSimulate <- c("F. prausnitzii", "R. intestialis", "L. lactis", "E. faec
 # obtain the empirical composition matrix for this 5 species
 compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
                         genomes=genomesToSimulate, nReads=500000,nReplicates=10)
+}
+\references{
+Martinez X. et al (2016): MetaTrans: an open source pipeline for metatranscriptomics
+  Scientific Reports 6, Article number: 26447
+  Vandeputte D. et al (2017): Quantitative microbiome profiling links gut community
+  variation to microbial load. Nature 551:507–511
 }
