@@ -87,7 +87,7 @@ compMatrix <- compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
 # incorporating differential expression: 10\% genes (in each bacterium) have a 2-fold
 # overexpression and 10\% have a 0.5-fold depletion.
 # No composition matrix is provided, so the one from the pasilla dataset will be used.
-# As there are 10 samples in the count matrix, we n 5 cases and 5 controls.
+# As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
 genomesFolder = system.file("extdata", package = "metaester", mustWork = TRUE)
 metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
                                                genomeReadMatrix=compMatrix, DE=TRUE,

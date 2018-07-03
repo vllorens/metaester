@@ -28,7 +28,7 @@ Metaester allows to simulate an entire microbial community, by first distributin
 ## Installation
 
 Metaester is built upon the devel version of Polyester (as of July 2018, not all changes in the devel version were pushed to the bioC version). Therefore, to use Metaester, we strongly recommend to install the devel version of Polyester:
-```{r installMetaester, eval=FALSE, echo=TRUE}
+```{r installPolyester, eval=FALSE, echo=TRUE}
 devtools::install_github("alyssafrazee/polyester")
 ```
 
@@ -36,7 +36,6 @@ To install the latest version of Metaester, run the following code:
 ```{r installMetaester, eval=FALSE, echo=TRUE}
 devtools::install_github("vllorens/metaester")
 ```
-
 
 ## The metaester workflow
 
@@ -50,4 +49,125 @@ Metaester is built with the aim of simulating metatranscriptomics datasets as si
 
 ## Metaester examples
 
+```{r loadMetaester, echo=TRUE, eval=TRUE}
+library(metaester)
+```
 
+This first set of examples uses an empirical distribution for the community composition, modeled as a negative binomial distribution.
+
+### Example 1: 10 replicates, NO differential composition, NO differential expression
+```{r example1.part1, echo=TRUE, eval=TRUE}
+## Step 1
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+
+random_seed <- 1       # this random seed is used for the read distribution among genomes,
+                       # an integer will be repeated nReplicates times to get the same read distribution across all samples
+
+samples <- 10          # as there is no differential expression, no need to specify nSamples and nControls
+reads_perSample <- 10000
+output_simulation <- "output_data"
+
+## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+
+## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
+```
+
+```{r example1.part2, echo=TRUE, eval=FALSE}
+## Step 4: Generate the fasta files (function simulateFastaReads)
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+```
+
+
+### Example 2: 10 replicates, differential composition (between cases and controls), NO differential expression
+```{r example2.part1, echo=TRUE, eval=TRUE}
+## Step 1
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+
+random_seed <- rep(1:2, each=5)       # in this case, 5 samples will have a given composition whilst the other 5 will harbor a different one
+
+samples <- 10          # as there is no differential expression between cases and controls, no need to specify nSamples and nControls
+reads_perSample <- 10000
+output_simulation <- "output_data"
+
+## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+
+## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
+```
+
+```{r example2.part2, echo=TRUE, eval=FALSE}
+## Step 4: Generate the fasta files (function simulateFastaReads)
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+```
+
+
+### Example 3: 10 replicates, differential composition across all samples, NO differential expression
+```{r example3.part1, echo=TRUE, eval=TRUE}
+## Step 1
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+
+random_seed <- 1:10    # in this case, 5 samples will have a given composition whilst the other 5 will harbor a different one
+
+samples <- 10          # as there is no differential expression, no need to specify nSamples and nControls
+reads_perSample <- 10000
+output_simulation <- "output_data"
+
+## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+
+## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
+```
+
+```{r example3.part2, echo=TRUE, eval=FALSE}
+## Step 4: Generate the fasta files (function simulateFastaReads)
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+```
+
+
+### Example 4: 10 replicates, NO differential composition, 10% of genes are differentially expressed
+```{r example4.part1, echo=TRUE, eval=TRUE}
+## Step 1
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+
+random_seed <- 1:10    # in this case, 5 samples will have a given composition whilst the other 5 will harbor a different one
+
+samples <- 10          # in this case there is differential expression, so we need to specify the number of cases and controls
+nCases <- 5
+nControls <- 5
+fold_changes=c(0.25,0.5,1,2,4)            # differentially expresed genes will have any of these fold changes (1 = no differential expression)
+fold_probs=c(0.025,0.025,0.9,0.025,0.025) # probabilities for each value in fold_changes. A fold change of 4 has a probability of 0.025. 90% of genes are not differentially expressed (fold_change 1)
+reads_perSample <- 10000
+output_simulation <- "output_data"
+
+## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+
+## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp, DE = T, foldChanges = fold_changes, foldProbs=fold_probs, nSamples=nCases,  nControls=nControls)
+```
+
+```{r example4.part2, echo=TRUE, eval=FALSE}
+## Step 4: Generate the fasta files (function simulateFastaReads)
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+```
+
+
+Similar code can be easily written to generate simulated datasets with different microbial composition AND differential expression. 
+
+
+## Session info:
+```{r sessionInfo, echo=TRUE, eval=TRUE}
+sessionInfo()
+```

@@ -25,7 +25,7 @@ reads per genome and per sample. Can be obtained using the function
 represent genes and columns represent replicates. User can provide one of
 their own, otherwise the matrix from the Pasilla dataset will be used.
 It's usedto fit a zero-inflated negative binomial and set the parameters
-to randomly n gene expression to the genes from the microbial genome.}
+to randomly assign gene expression to the genes from the microbial genome.}
 
 \item{DE}{Logical, whether or not to simulate differential expression between
 cases and controls (defaults to FALSE)}
@@ -69,7 +69,7 @@ A list, containing the following elements:
 This function is a wrapper for the \code{create_read_numbers}
    function from the polyester package. Takes a gene count matrix to fit a
    zero-inflated negative binomial distribution, then uses this as a model to
-   randomly n gene expression to each of the genes from the genome, as
+   randomly assign gene expression to each of the genes from the genome, as
    specified in a fasta file
 }
 \examples{
@@ -98,7 +98,7 @@ countMatrix_efaecalis <- simulateSingleGenome(genomeName="efaecalis", fasta=efae
 # Obtain the gene expression matrix for B. obeum, incorporating differential
 # expression: 10\% genes have a 2-fold overexpression and 10\% have a 0.5-fold depletion.
 # No composition matrix is provided, so the one from the pasilla dataset will be used.
-# As there are 10 samples in the count matrix, we n 5 cases and 5 controls.
+# As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
 data(bobeum)
 countMatrix_bobeum <- simulateSingleGenome(genomeName="bobeum", fasta=bobeum,
                                         genomeReadMatrix=compMatrix, DE=TRUE,
