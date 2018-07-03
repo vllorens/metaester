@@ -1,49 +1,51 @@
 
 #' Calculate reads for one genome, for all samples
 #'
-#' \code{simulateSingleGenome} simulates a gene count matrix for a single genome. This is
-#'    a wrapper for the function X in the polyester package. Users should not call it
-#'    directly but should only be called within the \code{simulateMetaTranscriptome}
-#'    function
-#' @param genomeName Name of the genome to be simulated. It should match the basename
-#'    of the fasta file for this genome
-#' @param fasta Either the path of the multi-fasta file containing the sequences of
-#'    all genes of the selected genome, or the fasta object read with the function
-#'    \code{read.fasta} from the \code{seqinr} package.
+#' \code{simulateSingleGenome} simulates a gene count matrix for a single
+#'    genome. This is a wrapper for the function \code{create_read_numbers} in
+#'    the polyester package. Users should not call it directly but should only
+#'    be called within the \code{simulateMetaTranscriptome} function
+#' @param genomeName Name of the genome to be simulated. It should match the
+#'    basename of the fasta file for this genome
+#' @param fasta Either the path of the multi-fasta file containing the sequences
+#'    of all genes of the selected genome, or the fasta object read with the
+#'    function \code{read.fasta} from the \code{seqinr} package.
 #'    The names of the genes will be taken from the fasta headers
-#' @param genomeReadMatrix Microbial composition matrix containing the number of reads
-#'    per genome and per sample. Can be obtained using the function
+#' @param genomeReadMatrix Microbial composition matrix containing the number of
+#'    reads per genome and per sample. Can be obtained using the function
 #'    \code{compositionGenomesMetaT}
-#' @param modelMatrix A composition matrix of gene expression, in which rows represent
-#'    genes and columns represent replicates. User can provide one of their own,
-#'    otherwise the matrix from the Pasilla dataset will be used. It's used to fit a
-#'    zero-inflated negative binomial and set the parameters to randomly assign gene
-#'    expression to the genes from the microbial genome.
-#' @param DE Logical, whether or not to simulate differential expression between cases
-#'    and controls (defaults to FALSE)
-#' @param foldChanges Numeric vector, containing the fold changes to simulate. It should
-#'    contain the value 1, for genes which are not differentially expressed. Required if
-#'    DE set to TRUE
-#' @param foldProbs Numeric vector, containing the probabilities for each of the fold-
-#'    changes specified in the parameter \code{foldChanges}. Required if DE is set to
-#'    TRUE. See examples
-#' @param nSamples An integer, must be specified if DE is set to TRUE. Number of cases
-#'    in the simulated experiment. nSamples + nControls must be equal to the number of
-#'    columns in the composition matrix \code{genomeReadMatrix}
-#' @param nControls An integer, must be specified if DE is set to TRUE. Number of controls
-#'    in the simulated experiment. nSamples + nControls must be equal to the number of
-#'    columns in the composition matrix \code{genomeReadMatrix}
+#' @param modelMatrix A composition matrix of gene expression, in which rows
+#'    represent genes and columns represent replicates. User can provide one of
+#'    their own, otherwise the matrix from the Pasilla dataset will be used.
+#'    It's usedto fit a zero-inflated negative binomial and set the parameters
+#'    to randomly assign gene expression to the genes from the microbial genome.
+#' @param DE Logical, whether or not to simulate differential expression between
+#'    cases and controls (defaults to FALSE)
+#' @param foldChanges Numeric vector, containing the fold changes to simulate.
+#'    It should contain the value 1, for genes which are not differentially
+#'    expressed. Required if DE set to TRUE
+#' @param foldProbs Numeric vector, containing the probabilities for each of the
+#'    fold-changes specified in the parameter \code{foldChanges}. Required if DE
+#'    is set to TRUE. See examples
+#' @param nSamples An integer, must be specified if DE is set to TRUE. Number of
+#'    cases in the simulated experiment. nSamples + nControls must be equal to
+#'    the number of columns in the composition matrix \code{genomeReadMatrix}
+#' @param nControls An integer, must be specified if DE is set to TRUE. Number
+#'    of controls in the simulated experiment. nSamples + nControls must be
+#'    equal to the number of columns in the composition matrix
+#'    \code{genomeReadMatrix}
 #' @param seed An integer, sets the random seed for the read distribution.
-#' @details This function is a wrapper for the \code{create_read_numbers} function from
-#'    the polyester package. Takes a gene count matrix to fit a zero-inflated negative
-#'    binomial distribution, then uses this as a model to randomly assign gene expression
-#'    to each of the genes from the genome, as specified in a fasta file
+#' @details This function is a wrapper for the \code{create_read_numbers}
+#'    function from the polyester package. Takes a gene count matrix to fit a
+#'    zero-inflated negative binomial distribution, then uses this as a model to
+#'    randomly assign gene expression to each of the genes from the genome, as
+#'    specified in a fasta file
 #' @references
-#'    - Huber W, Reyes A (2018). pasilla: Data package with per-exon and per-gene read
-#'    counts of RNA-seq samples of Pasilla knock-down by Brooks et al. R package version
-#'    1.8.0
-#'    - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek (2018).
-#'    polyester: Simulate RNA-seq reads. R package version 1.16.0.
+#'    - Huber W, Reyes A (2018). pasilla: Data package with per-exon and
+#'    per-gene read counts of RNA-seq samples of Pasilla knock-down by Brooks et
+#'    al. R package version 1.8.0
+#'    - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek
+#'    (2018). polyester: Simulate RNA-seq reads. R package version 1.16.0.
 #' @import stats
 #' @import utils
 #' @import polyester
@@ -166,8 +168,95 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 
 
 
-
-## function to iterate over all genomes to produce final matrix
+#' Calculate reads for one genome, for all samples
+#'
+#' \code{simulateMetaTranscriptome} simulates a gene count matrix for an entire
+#'    metatranscriptome
+#' @param genomeFileDir Character string indicating the location of the fasta files
+#'    for all genomes to be included in the metatranscriptome simulation. The basenames
+#'    of these fasta files must match the rownames of the genomeReadMatrix composition
+#'    matrix. See details
+#' @param genomeReadMatrix Microbial composition matrix containing the number of reads
+#'    per genome and per sample. Can be obtained using the function
+#'    \code{compositionGenomesMetaT}
+#' @param modelMatrix A composition matrix of gene expression, in which rows represent
+#'    genes and columns represent replicates. User can provide one of their own,
+#'    otherwise the matrix from the Pasilla dataset will be used. It's used to fit a
+#'    zero-inflated negative binomial and set the parameters to randomly assign gene
+#'    expression to the genes from the microbial genome.
+#' @param DE Logical, whether or not to simulate differential expression between cases
+#'    and controls (defaults to FALSE)
+#' @param foldChanges Numeric vector, containing the fold changes to simulate. It should
+#'    contain the value 1, for genes which are not differentially expressed. Required if
+#'    DE set to TRUE
+#' @param foldProbs Numeric vector, containing the probabilities for each of the fold-
+#'    changes specified in the parameter \code{foldChanges}. Required if DE is set to
+#'    TRUE. See examples
+#' @param nSamples An integer, must be specified if DE is set to TRUE. Number of cases
+#'    in the simulated experiment. nSamples + nControls must be equal to the number of
+#'    columns in the composition matrix \code{genomeReadMatrix}
+#' @param nControls An integer, must be specified if DE is set to TRUE. Number of controls
+#'    in the simulated experiment. nSamples + nControls must be equal to the number of
+#'    columns in the composition matrix \code{genomeReadMatrix}
+#' @param seed An integer, sets the random seed for the read distribution.
+#' @details This function iterates over all the genomes present in the composition matrix
+#'    and simulates their corresponding gene expression matrix, putting them all together
+#'    Valid fasta extensions for the fasta files located in  \code{genomeFileDir}:
+#'    *.fa, *.fasta, *.fna, *.genes.fa, *.genes.fasta, *.genes.fna
+#' @references
+#'    - Huber W, Reyes A (2018). pasilla: Data package with per-exon and per-gene read
+#'    counts of RNA-seq samples of Pasilla knock-down by Brooks et al. R package version
+#'    1.8.0
+#'    - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek (2018).
+#'    polyester: Simulate RNA-seq reads. R package version 1.16.0.
+#' @import stats
+#' @import utils
+#' @import polyester
+#' @import seqinr
+#' @export
+#' @return A list, containing the following elements:
+#'    - simulationData: a data.frame with the read counts for each gene and each sample.
+#'      Each row represents a gene and each column a sample. If there is differential
+#'      expression, column names indicate whether each sample is a case or a control
+#'    - numSamples: if DE is set to TRUE, the number of cases specified, otherwise NULL
+#'    - numControls: if DE is set to TRUE, the number of controls, otherwise NULL
+#'    - DEgenes: if DE is set to TRUE, a two-column data.frame, the first column
+#'      indicating gene names and the second column the fold change applied to each gene
+#' @examples
+#' # First, define a list of genomes to simulate. The names of these genomes need to match
+#' # the names of the fasta files (without the extension). The genomes used are:
+#' # - F. prausnitzii
+#' # - R. intestinalis
+#' # - L. johnsonii
+#' # - E. faecalis
+#' # - B. obeum
+#' genomesToSimulate <- c("fprausnitzii", "rintestinalis", "ljohnsonii", "efaecalis",
+#'                        "bobeum")
+#'
+#' # Then, obtain the empirical composition matrix for this 5 species
+#' compMatrix <- compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
+#'                                    genomes=genomesToSimulate, nReads=500000,
+#'                                    nReplicates=10)
+#'
+#'
+#' # Obtain the gene expression matrix for the full community (metatranscriptome)
+#' # In this case, there is no differential expression in any of the bacteria.
+#' # No composition matrix is provided, so the one from the pasilla dataset will be used.
+#' # For this, first indicate the location of the fasta files
+#' genomesFolder = system.file("extdata", package = "metaester", mustWork = TRUE)
+#' metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
+#'                                                genomeReadMatrix=compMatrix)
+#'
+#' # Obtain the gene expression matrix for the full community (metatranscriptome)
+#' # incorporating differential expression: 10% genes (in each bacterium) have a 2-fold
+#' # overexpression and 10% have a 0.5-fold depletion.
+#' # No composition matrix is provided, so the one from the pasilla dataset will be used.
+#' # As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+#' metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
+#'                                                genomeReadMatrix=compMatrix, DE=TRUE,
+#'                                                foldChanges=c(0.5,1,2),
+#'                                                foldProbs=c(10,80,10),
+#'                                                nSamples=5, nControls=5)
 simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatrix=NULL, DE=F, foldChanges=NULL, foldProbs=NULL, nSamples=NULL, nControls=NULL, seed=42){
   simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples, nControls=nControls)
   for(i in 1:nrow(genomeReadMatrix)){
@@ -197,7 +286,97 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 # file too (currently only with the genes fasta). Does polyester have this function?
 # If so, write a wrapper for it.
 ##  write wrapper for the simulate_experiment_countmat function in the polyester package
-simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T, seed=42, distr="empirical", error_model="illumina5", bias="rnaf", strand_specific=T){
+
+#' Generate fasta files for a metatranscriptome gene expression matrix
+#'
+#' \code{simulateFastaReads} generates the fasta files for a given metatranscriptome
+#'    gene expression matrix, calculated with \code{simulateMetaTranscriptome}. The
+#'    fasta files are written to a directory. This is a wrapper to the
+#'    \code{simulate_experiment_countmat} function from the polyester package
+#' @param genomeFileDir Character string indicating the location of the fasta files
+#'    for all genomes to be included in the metatranscriptome simulation. The basenames
+#'    of these fasta files must match the rownames of the genomeReadMatrix composition
+#'    matrix. See details
+#' @param simulatedDataSet Metatranscriptome gene expression matrix containing the
+#'    read counts per gene and per sample. Can be obtained using the function
+#'    \code{simulateMetaTranscriptome}
+#' @param outdir Path to the directory where the fasta files with the simulated reads
+#'    should be written. Created if not exists.
+#' @param paired Logical, whether to generate paired-end fasta reads (defaults to TRUE)
+#' @param seed An integer, sets the random seed for the fasta generation
+#' @param distr Parameter to be passed to the \code{simulate_experiment_countmat}
+#'    function. Controls the distribution of fragment length for paired-end reads.
+#'    Defaults to "empirical". Check documentation in the polyester package.
+#' @param error_model Parameter to be passed to the \code{simulate_experiment_countmat}
+#'    function. Used to simulate error rates from the sequence. Defaults to "illumina5".
+#'    Check documentation in the polyester package.
+#' @param bias Parameter to be passed to the \code{simulate_experiment_countmat}
+#'    function. Controls the distribution of reads within the gene/transcript, which
+#'    may be different depending on the fragmentation step of the library preparation
+#'    protocol (leading to increased coverage at the 5' or 3' of the transcript).
+#'    Defaults to "rnaf". Check documentation in the polyester package.
+#' @param strand_specific Logical. Parameter to be passed to the
+#'    \code{simulate_experiment_countmat} function. Should the reads be strand-specific?
+#'    Check documentation in the polyester package.
+#' @param ... Further arguments to be passed to the \code{simulate_experiment_countmat}
+#'    function. Check documentation in the polyester package.
+#' @details  This function is a wrapper to the \code{simulate_experiment_countmat}
+#'    function from the polyester package. Reads can be simulated from a multifasta
+#'    file containing one sequence for each gene. Functionality to work with full genomes
+#'    + GTF annotation files is not developed. Meanwhile, there are several (external)
+#'    tools that allow to convert a genome fasta + a GTF file into a transcript fasta,
+#'    such as \code{gffread} from Cufflinks.
+#' @references
+#'    - Alyssa C. Frazee, Andrew E. Jaffe, Rory Kirchner and Jeffrey T. Leek (2018).
+#'    polyester: Simulate RNA-seq reads. R package version 1.16.0.
+#' @import stats
+#' @import utils
+#' @import polyester
+#' @import seqinr
+#' @export
+#' @return Writes the following files into the specified output directory:
+#'    - Fasta files (*.fasta), one for each sample, containing the reads per gene
+#'      specified in the metatranscriptomics gene count matrix (simulatedDataSet object)
+#'    - Gene count matrix (countMatrix.txt): matrix with the counts per gene and per
+#'      sample, useful to compare the results of mapping/differential expression tools to
+#'    - Differentially expressed genes list (DEgenes.txt): if DE is set to TRUE, a
+#'      two-column matrix, the first column indicating gene names and the second column
+#'      the fold change applied to each gene. Otherwise the file will be empty.
+#' @examples
+#' # First, define a list of genomes to simulate. The names of these genomes need to match
+#' # the names of the fasta files (without the extension). The genomes used are:
+#' # - F. prausnitzii
+#' # - R. intestinalis
+#' # - L. johnsonii
+#' # - E. faecalis
+#' # - B. obeum
+#' genomesToSimulate <- c("fprausnitzii", "rintestinalis", "ljohnsonii", "efaecalis",
+#'                        "bobeum")
+#'
+#' # Then, obtain the empirical composition matrix for this 5 species
+#' compMatrix <- compositionGenomesMetaT(composition="empirical", empiricalSeed=1,
+#'                                    genomes=genomesToSimulate, nReads=500000,
+#'                                    nReplicates=10)
+#'
+#' # Obtain the gene expression matrix for the full community (metatranscriptome)
+#' # incorporating differential expression: 10% genes (in each bacterium) have a 2-fold
+#' # overexpression and 10% have a 0.5-fold depletion.
+#' # No composition matrix is provided, so the one from the pasilla dataset will be used.
+#' # As there are 10 samples in the count matrix, we assign 5 cases and 5 controls.
+#' metatranscriptome <- simulateMetaTranscriptome(genomeFileDir=genomesFolder,
+#'                                                genomeReadMatrix=compMatrix, DE=TRUE,
+#'                                                foldChanges=c(0.5,1,2),
+#'                                                foldProbs=c(10,80,10),
+#'                                                nSamples=5, nControls=5)
+#'
+#' # Finally, generate the fasta files and write them to the output directory
+#' simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
+#'                    outdir=".")
+simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T,
+                               seed=42, distr="empirical", error_model="illumina5",
+                               bias="rnaf", strand_specific=T, ...){
+  extras = list(...)
+  extras = .check_extras(extras, paired, total.n = ncol(readmat))
   ## if pre-existing, remove fasta file with all genomes
   fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
   if(file.exists(fastaFullFile)){
@@ -214,12 +393,22 @@ simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", pair
     system(paste("cat", file, ">>", fastaFullFile, sep=" "))
   }
   countMatrix <- as.matrix(simulatedDataSet$simulationData)
-  simulate_experiment_countmat(fasta=fastaFullFile, readmat=countMatrix, outdir=outdir, paired=paired, seed=seed, distr=distr, error_model=error_model, bias=bias, strand_specific=T)
+
+  # create output directory if not exists
+  if(!dir.exists(outdir)){
+    dir.create(outdir)
+  }
+  # simulate fasta readsand write output to outdir
+  simulate_experiment_countmat(fasta=fastaFullFile, readmat=countMatrix, outdir=outdir,
+                               paired=paired, seed=seed, distr=distr,
+                               error_model=error_model, bias=bias, strand_specific=T, extras)
   system(paste("rm", fastaFullFile, sep=" "))
   out_countMatrix <- file.path(outdir, "countMatrix.txt")
   out_DEgenes <- file.path(outdir, "DEgenes.txt")
-  write.table(simulatedDataSet$simulationData, file=out_countMatrix, col.names=T, row.names=T, quote=F, sep="\t")
-  write.table(simulatedDataSet$DEgenes, file=out_DEgenes, col.names=F, row.names=F, quote=F, sep="\t")
+  write.table(simulatedDataSet$simulationData, file=out_countMatrix, col.names=T,
+              row.names=T, quote=F, sep="\t")
+  write.table(simulatedDataSet$DEgenes, file=out_DEgenes, col.names=F, row.names=F,
+              quote=F, sep="\t")
 }
 
 
