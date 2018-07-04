@@ -65,7 +65,6 @@ genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")
 genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             
 
 genomeList
-#> [1] "bobeum"        "efaecalis"     "fprausnitzii"  "ljohnsonii"    "rintestinalis"
 
 # set random seed for the genome composition
 random_seed <- 1      
@@ -81,68 +80,110 @@ output_simulation <- "output_data"
 #### Step 1: Generate genome read distribution.
 Here, we use the function `compositionGenomesMetaT()`. We will distribute the reads among the 5 genomes using an empirical distribution (i.e. a negative binomial, derived from real data).
 ```{r example.part1, echo=TRUE, eval=TRUE}
-genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, 
+                                      nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+
+# print the microbial composition table to see that differences in abundances are only due to sampling
+genomeComp
 ```
 #### Step 2: Generate gene read distribution.
-Here, we use the function `simulateMetaTranscriptome()`. This function takes the reads assigned to each genome and the list of genes within this genome (extracted from the FASTA file), and then distributes the reads among the different genes of that genome. This function does this for the 5 genomes in our list and aggregates the output, resulting in a single gene count matrix, in which each row represents a single gene from any of this 5 bacteria and each column represents one of the 10 samples.
+Here, we use the function `simulateMetaTranscriptome()`. This function takes the reads assigned to each genome and the list of genes within this genome (extracted from the FASTA file), and then distributes the reads among the different genes of that genome. This function does this for the 5 genomes in our list and for the 10 samples and aggregates the output, resulting in a single gene count matrix, in which each row represents a single gene from any of this 5 bacteria and each column represents one of the 10 samples.
 ```{r example.part2, echo=TRUE, eval=TRUE}
 metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
 ```
-#### Step 4: Generate the FASTA files. 
+#### Step 3: Generate the FASTA files. 
 Here, we use the function `simulateFastaReads()`. This function takes the output from the previous one, as well as the gene FASTAS from each genome. It writes the simulated reads fasta files to the output directory (2 fasta files per sample in paired-end mode or 1 in single-end mode). It also writes the gene count matrix in the same directory, and a list of differentially expressed genes.
 ```{r example1.part3, echo=TRUE, eval=FALSE}
 ## Step 4: Generate the fasta files (function simulateFastaReads)
-simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, 
+                   simulatedDataSet = metaT_experiment)
 ```
+
 
 
 ### Example 2: 10 replicates, differential composition (between cases and controls), NO differential expression
-```{r example2.part1, echo=TRUE, eval=TRUE}
-## Step 1
-path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
-genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
-genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+#### Step 0: define the parameters of the experiment
+In this case, we will simulate 10 samples in two groups of 5, in which each group has a different microbial composition. Here, bacteria change their relative abundances from one group to another, but the functions they perform are the same, as there is no differential expression. 
+```{r example2.part0, echo=TRUE, eval=TRUE}
+# load the genomes of 5 gut bacteria and list them
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) 
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             
 
-random_seed <- rep(1:2, each=5)       # in this case, 5 samples will have a given composition whilst the other 5 will harbor a different one
+genomeList
 
-samples <- 10          # as there is no differential expression between cases and controls, no need to specify nSamples and nControls
+# set random seed for the genome composition (for 10 samples, we generate the 2 groups)
+random_seed <- rep(1:2, each=5)     
+                       
+# set number of replicates and reads to simulate.
+# as there are no differences among replicates, no need to specify number of cases and conrols
+samples <- 10          
 reads_perSample <- 10000
+
+# specify output directory
 output_simulation <- "output_data"
+```
+#### Step 1: Generate genome read distribution.
+Here, we use the function `compositionGenomesMetaT()`. We will distribute the reads among the 5 genomes using an empirical distribution (i.e. a negative binomial, derived from real data).
+```{r example2.part1, echo=TRUE, eval=TRUE}
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, 
+                                      nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
 
-## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
-genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
-
-## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+# print the microbial composition table to see the differences between the two groups
+genomeComp
+```
+#### Step 2: Generate gene read distribution.
+Here, we use the function `simulateMetaTranscriptome()`. This function takes the reads assigned to each genome and the list of genes within this genome (extracted from the FASTA file), and then distributes the reads among the different genes of that genome. This function does this for the 5 genomes in our list, and for the 10 samples, and aggregates the output, resulting in a single gene count matrix, in which each row represents a single gene from any of this 5 bacteria and each column represents one of the 10 samples.
+```{r example2.part2, echo=TRUE, eval=FALSE}
 metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
 ```
-```{r example2.part2, echo=TRUE, eval=FALSE}
-## Step 4: Generate the fasta files (function simulateFastaReads)
-simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+#### Step 3: Generate the FASTA files. 
+Here, we use the function `simulateFastaReads()`. This function takes the output from the previous one, as well as the gene FASTAS from each genome. It writes the simulated reads fasta files to the output directory (2 fasta files per sample in paired-end mode or 1 in single-end mode). It also writes the gene count matrix in the same directory, and a list of differentially expressed genes.
+```{r example2.part3, echo=TRUE, eval=FALSE}
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation,
+                   simulatedDataSet = metaT_experiment)
 ```
+
 
 
 ### Example 3: 10 replicates, differential composition across all samples, NO differential expression
-```{r example3.part1, echo=TRUE, eval=TRUE}
-## Step 1
-path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) # contains example data for this package
-genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 # select fasta files from the example data
-genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             # parse genome names from the files
+#### Step 0: define the parameters of the experiment
+In this case, we will simulate 10 samples, but each sample has a different bacterial composition. This would be equivalent to sequencing samples from different individuals. Here, bacteria change their relative abundances from one sample to another, but the functions they perform are the same, as there is no differential expression. 
+```{r example3.part0, echo=TRUE, eval=TRUE}
+# load the genomes of 5 gut bacteria and list them
+path_to_fastas <- system.file("extdata", package = "metaester", mustWork = TRUE) 
+genomeList <- list.files(path_to_fastas, pattern = ".genes.fna")                 
+genomeList <- gsub(genomeList, pattern=".genes.fna", replacement="")             
 
-random_seed <- 1:10    # in this case, 5 samples will have a given composition whilst the other 5 will harbor a different one
+genomeList
 
-samples <- 10          # as there is no differential expression, no need to specify nSamples and nControls
+# set random seed for the genome composition (for 10 samples, a different seed per sample)
+random_seed <- 1:10     
+                       
+# set number of replicates and reads to simulate.
+# as there are no differences among replicates, no need to specify number of cases and conrols
+samples <- 10          
 reads_perSample <- 10000
+
+# specify output directory
 output_simulation <- "output_data"
-
-## Step 2: Generate genome read distribution (function compositionGenomesMetaT)
-genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
-
-## Step 3: Generate gene read distribution (function simulateMetaTranscriptome)
+```
+#### Step 1: Generate genome read distribution.
+Here, we use the function `compositionGenomesMetaT()`. We will distribute the reads among the 5 genomes using an empirical distribution (i.e. a negative binomial, derived from real data).
+```{r example3.part1, echo=TRUE, eval=TRUE}
+genomeComp <- compositionGenomesMetaT(composition = "empirical", empiricalSeed = random_seed, 
+                                      nReplicates = samples, genomes=genomeList, nReads=reads_perSample)
+```
+#### Step 2: Generate gene read distribution.
+Here, we use the function `simulateMetaTranscriptome()`. This function takes the reads assigned to each genome and the list of genes within this genome (extracted from the FASTA file), and then distributes the reads among the different genes of that genome. This function does this for the 5 genomes in our list, and for the 10 samples, and aggregates the output, resulting in a single gene count matrix, in which each row represents a single gene from any of this 5 bacteria and each column represents one of the 10 samples.
+```{r example2.part2, echo=TRUE, eval=FALSE}
 metaT_experiment=simulateMetaTranscriptome(genomeFileDir = path_to_fastas, genomeReadMatrix = genomeComp)
 ```
-```{r example3.part2, echo=TRUE, eval=FALSE}
-## Step 4: Generate the fasta files (function simulateFastaReads)
-simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation, simulatedDataSet = metaT_experiment)
+#### Step 3: Generate the FASTA files. 
+Here, we use the function `simulateFastaReads()`. This function takes the output from the previous one, as well as the gene FASTAS from each genome. It writes the simulated reads fasta files to the output directory (2 fasta files per sample in paired-end mode or 1 in single-end mode). It also writes the gene count matrix in the same directory, and a list of differentially expressed genes.
+```{r example2.part3, echo=TRUE, eval=FALSE}
+simulateFastaReads(genomeFileDir = path_to_fastas, outdir = output_simulation,
+                   simulatedDataSet = metaT_experiment)
 ```
 
 
