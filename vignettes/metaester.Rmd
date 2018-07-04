@@ -226,6 +226,7 @@ reads_perSample <- 10000
 # X < 1 depletion
 # X = 1 no changes (it is important to include that some genes will have no changes)
 fold_changes=c(0.25,0.5,1,2,4) 
+
 # after specifying fold changes, it is required to specify the probability of each of them in order
 # probabilities don't need to add up to 100, but it makes it easier to interpret. In this case: 
 # 2.5% probability of 0.25-fold
