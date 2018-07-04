@@ -31,7 +31,7 @@ Metaester is built with the aim of simulating metatranscriptomics datasets as si
 
 # Metaester examples
 
-See all available examples in the Metaester [vignette](https://github.com/vllorens/metaester/vignettes/metaester.Rmd)
+See all available examples in the Metaester [vignette](https://github.com/vllorens/metaester/blob/master/vignettes/metaester.Rmd)
 
 # Contribute
 
