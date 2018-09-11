@@ -32,6 +32,12 @@ Metaester is built upon the devel version of Polyester (as of July 2018, not all
 devtools::install_github("alyssafrazee/polyester")
 ```
 
+It is also required to install the Pasilla dataset manually:
+```{r installPasilla, eval=FALSE, echo=TRUE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("pasilla")
+```
+
 To install Metaester, run the following code:
 ```{r installMetaester, eval=FALSE, echo=TRUE}
 devtools::install_github("vllorens/metaester")
