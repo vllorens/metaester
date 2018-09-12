@@ -15,7 +15,6 @@ LazyData: true
 Depends: R (>= 2.10)
 biocViews:
 Imports:
-    biocViews,
     seqinr (>= 3.4-5),
     pasilla,
     fitdistrplus (>= 1.0-9),
