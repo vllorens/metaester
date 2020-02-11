@@ -19,8 +19,6 @@ Imports:
     pasilla,
     fitdistrplus (>= 1.0-9),
     polyester (>= 1.9.0)
-Remotes:
-    alysafrazee/polyester
 RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
