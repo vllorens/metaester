@@ -4,9 +4,18 @@
 \alias{simulateSingleGenome}
 \title{Calculate reads for one genome, for all samples}
 \usage{
-simulateSingleGenome(genomeName, fasta, genomeReadMatrix, modelMatrix = NULL,
-  DE = F, foldChanges = NULL, foldProbs = NULL, nSamples = NULL,
-  nControls = NULL, seed = 42)
+simulateSingleGenome(
+  genomeName,
+  fasta,
+  genomeReadMatrix,
+  modelMatrix = NULL,
+  DE = F,
+  foldChanges = NULL,
+  foldProbs = NULL,
+  nSamples = NULL,
+  nControls = NULL,
+  seed = 42
+)
 }
 \arguments{
 \item{genomeName}{Name of the genome to be simulated. It should match the

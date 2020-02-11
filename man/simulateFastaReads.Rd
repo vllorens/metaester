@@ -4,9 +4,17 @@
 \alias{simulateFastaReads}
 \title{Generate fasta files for a metatranscriptome gene expression matrix}
 \usage{
-simulateFastaReads(genomeFileDir, simulatedDataSet, outdir = ".",
-  paired = T, seed = 42, distr = "empirical", error_model = "illumina5",
-  bias = "rnaf", strand_specific = T)
+simulateFastaReads(
+  genomeFileDir,
+  simulatedDataSet,
+  outdir = ".",
+  paired = T,
+  seed = 42,
+  distr = "empirical",
+  error_model = "illumina5",
+  bias = "rnaf",
+  strand_specific = T
+)
 }
 \arguments{
 \item{genomeFileDir}{Character string indicating the location of the fasta files

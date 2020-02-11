@@ -4,9 +4,17 @@
 \alias{simulateMetaTranscriptome}
 \title{Calculate reads for one genome, for all samples}
 \usage{
-simulateMetaTranscriptome(genomeFileDir, genomeReadMatrix, modelMatrix = NULL,
-  DE = F, foldChanges = NULL, foldProbs = NULL, nSamples = NULL,
-  nControls = NULL, seed = 42)
+simulateMetaTranscriptome(
+  genomeFileDir,
+  genomeReadMatrix,
+  modelMatrix = NULL,
+  DE = F,
+  foldChanges = NULL,
+  foldProbs = NULL,
+  nSamples = NULL,
+  nControls = NULL,
+  seed = 42
+)
 }
 \arguments{
 \item{genomeFileDir}{Character string indicating the location of the fasta files

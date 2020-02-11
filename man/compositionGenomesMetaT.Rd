@@ -4,9 +4,15 @@
 \alias{compositionGenomesMetaT}
 \title{Define the species composition of all samples in a metatranscriptomics dataset}
 \usage{
-compositionGenomesMetaT(composition = c("custom", "empirical", "even"),
-  empiricalSeed = NULL, genomes, compositionMatrix = NULL, nReads = 1e+06,
-  nReplicates = 10, seed = 42)
+compositionGenomesMetaT(
+  composition = c("custom", "empirical", "even"),
+  empiricalSeed = NULL,
+  genomes,
+  compositionMatrix = NULL,
+  nReads = 1e+06,
+  nReplicates = 10,
+  seed = 42
+)
 }
 \arguments{
 \item{composition}{A character string indicating which method to use to determine
