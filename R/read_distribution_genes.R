@@ -113,6 +113,7 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
   # to the genes of the simulated bacteria
   numGenesToSimulate <- length(fastaGenes)
   countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
+  ## While there are less than four unique 'x' values in countsBacteria, repeat sampling
   while( length(unique(countsBacteria$untreated1)) < 4 || length(unique(countsBacteria$untreated2)) < 4 || length(unique(countsBacteria$untreated3)) < 4 || length(unique(countsBacteria$untreated4)) < 4){
 	countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
 	}
@@ -265,6 +266,7 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
                                       nSamples=NULL, nControls=NULL, seed=42){
   simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples,
                            nControls=nControls)
+  ## if not all genomes genomeReadMatrix are not used, remove the genome from matrix
   genomeReadMatrix[,"sum"] <- rowSums(genomeReadMatrix)
   genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0,-ncol(genomeReadMatrix)]
   for(i in 1:nrow(genomeReadMatrix)){
@@ -392,12 +394,16 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix, outdir=".",
 				paired=T, seed=42, distr="empirical", error_model="illumina5",
 				bias="rnaf", strand_specific=T){
+  ## if not all genomes genomeReadMatrix are not used, remove the genome from matrix
+  genomeReadMatrix[, "sum"] <- rowSums(genomeReadMatrix)
+  genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0, -ncol(genomeReadMatrix)]
+
   ## if pre-existing, remove fasta file with all genomes
   fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
   if(file.exists(fastaFullFile)){
     system(paste("rm", fastaFullFile, sep=" "))
   }
-  ## first, generate a fasta from all the fasta files in genomeFileDir
+  ## first, generate a fasta from all the fasta files in genomeReadMatrix genome
   fastaFiles <- c()
   for (i in 1:nrow(genomeReadMatrix)){
 	selectedfile <- c(file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fa")),
