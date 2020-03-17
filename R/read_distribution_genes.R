@@ -112,7 +112,11 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
   # now, randomly assign expression from some genes of the pasilla dataset
   # to the genes of the simulated bacteria
   numGenesToSimulate <- length(fastaGenes)
-  countsBacteria <- modelMatrix[sample(numGenesToSimulate, replace = TRUE),]
+  countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
+  ## While there are less than four unique 'x' values in countsBacteria, repeat sampling
+  while( length(unique(countsBacteria$untreated1))<4 || length(unique(countsBacteria$untreated2))<4 || length(unique(countsBacteria$untreated3))<4 || length(unique(countsBacteria$untreated4))<4){
+	countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
+	}
 
   # get parameters from this sampling
   par <- get_params(countsBacteria)
