@@ -266,6 +266,9 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
                                       nSamples=NULL, nControls=NULL, seed=42){
   simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples,
                            nControls=nControls)
+  ## if not all the genomes in genomeReadMatrix are used, remove the genome from matrix
+  genomeReadMatrix[,"sum"] <- rowSums(genomeReadMatrix)
+  genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0,-ncol(genomeReadMatrix)]
   for(i in 1:nrow(genomeReadMatrix)){
     genomeName <- rownames(genomeReadMatrix)[i]
     # check all possible fasta file extensions
@@ -388,9 +391,12 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #' # Finally, generate the fasta files and write them to the output directory
 #' \donttest{simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
 #'                    outdir=".")}
-simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T,
-                               seed=42, distr="empirical", error_model="illumina5",
+simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix, outdir=".",
+                               paired=T, seed=42, distr="empirical", error_model="illumina5",
                                bias="rnaf", strand_specific=T){
+  ## if not all the genomes in genomeReadMatrix are used, remove the genomes from matrix
+  genomeReadMatrix[, "sum"] <- rowSums(genomeReadMatrix)
+  genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0, -ncol(genomeReadMatrix)]
   ## if pre-existing, remove fasta file with all genomes
   fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
   if(file.exists(fastaFullFile)){
