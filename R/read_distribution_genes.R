@@ -402,13 +402,17 @@ simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix
   if(file.exists(fastaFullFile)){
     system(paste("rm", fastaFullFile, sep=" "))
   }
-  ## first, generate a fasta from all the fasta files in genomeFileDir
-  fastaFiles <- unique(c(list.files(genomeFileDir, pattern = ".fasta", full.names = T),
-                      list.files(genomeFileDir, pattern = ".fa", full.names = T),
-                      list.files(genomeFileDir, pattern = ".fna", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fasta", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fa", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fna", full.names = T)))
+  ## first, generate a fasta from all the fasta files in genomeReadMatrix genome
+  fastaFiles <- c()
+  for (i in 1:nrow(genomeReadMatrix)){
+	selectedfile <- c(file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fa")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fasta")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fna")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fa")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fasta")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fna")))
+	fastaFiles <- append(fastaFiles, selectedfile[file.exists(selectedfile)])
+  }
   for(file in fastaFiles){
     system(paste("cat", file, ">>", fastaFullFile, sep=" "))
   }
