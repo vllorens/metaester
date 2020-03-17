@@ -92,26 +92,22 @@
 #'                                         foldChanges=c(0.5,1,2), foldProbs=c(10,80,10),
 #'                                         nSamples=5, nControls=5)
 # function to calculate reads for one genome, for all samples
-simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=NULL,
-                              DE=F, foldChanges=NULL, foldProbs=NULL, nSamples=NULL,
-                              nControls=NULL, seed=42){
-  # this first part loads the count matrix from the pasilla dataset,
-  # if the user didn't provide a custom one ----
-  if(is.null(modelMatrix)){
+simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix = NULL, DE = F, foldChanges = NULL, foldProbs = NULL, nSamples = NULL, nControls = NULL, seed = 42)
+{
+  if (is.null(modelMatrix)) {
     modelMatrix <- loadPasilla()
   }
-  # if fasta is a string, it should be the path to the fasta file
-  # if it is a list, it should be
-  if(is.character(fasta)){
-    fastaGenes <- read.fasta(fasta,as.string = TRUE)
-  } else if(is.list(fasta)){
+  if (is.character(fasta)) {
+    fastaGenes <- read.fasta(fasta, as.string = TRUE)
+  }
+  else if (is.list(fasta)) {
     fastaGenes <- fasta
-  } else{
+  }
+  else {
     print("Please provide a valid fasta argument. Check help for ?simulateSingleGenome")
   }
-  # now, randomly assign expression from some genes of the pasilla dataset
-  # to the genes of the simulated bacteria
   numGenesToSimulate <- length(fastaGenes)
+<<<<<<< HEAD
   countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
   ## While there are less than four unique 'x' values in countsBacteria, repeat sampling
   while( length(unique(countsBacteria$untreated1)) < 4 || length(unique(countsBacteria$untreated2)) < 4 || length(unique(countsBacteria$untreated3)) < 4 || length(unique(countsBacteria$untreated4)) < 4){
@@ -119,49 +115,40 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 	}
 
   # get parameters from this sampling
+=======
+  countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE), ]
+  while( unique(countsBacteria$untreated1) %>% length < 4 || unique(countsBacteria$untreated2) %>% length < 4 || unique(countsBacteria$untreated3) %>% length < 4 || unique(countsBacteria$untreated4) %>% length < 4 ){ countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE), ] }
+>>>>>>> af85328a9ffd4aa88735d38bdb7025c3057551e7
   par <- get_params(countsBacteria)
-
-  # generate new dataset, separate "controls" and "treated" samples and
-  # calculate differential expression with the foldChanges and foldProbs provided
-  # normally this creates ~5M reads per sample
   simData <- create_read_numbers(par$mu, par$fit, par$p0, m = numGenesToSimulate,
                                  n = ncol(genomeReadMatrix))
   colnames(simData) <- c(paste("sample", 1:ncol(simData), sep = "_"))
   rownames(simData) <- names(fastaGenes)
-
-  if(DE == T){
-    if(ncol(genomeReadMatrix) != nSamples+nControls){
+  if (DE == T) {
+    if (ncol(genomeReadMatrix) != nSamples + nControls) {
       print("Please provide correct number of samples and controls so that nSamples+nControls=total number of simulated experiments")
-    } else{
-      controlSimData <- simData[,1:nControls]
-      treatedSimData <- simData[,(nControls+1):(nSamples+nControls)]
-
-      # sample number of genes up/down-regulated or staying the same (thus with FC=1)
-      DEgenes <- sample(foldChanges, size = numGenesToSimulate, prob = foldProbs,
-                        replace=T)
-
-      treatedSimData <- round(treatedSimData*DEgenes)
-
-      simData <- cbind(controlSimData, treatedSimData)
-      colnames(simData) <- c(paste("control", 1:nControls, sep="_"),
-                             paste("treated", 1:nSamples, sep="_"))
-      rownames(simData) <- names(fastaGenes)
-      DEgenesNames <- as.data.frame(cbind(names(fastaGenes), DEgenes), stringsAsFactors=F)
     }
-  } else{
+    else {
+      controlSimData <- simData[, 1:nControls]
+      treatedSimData <- simData[, (nControls + 1):(nSamples + nControls)]
+      DEgenes <- sample(foldChanges, size = numGenesToSimulate,
+                        prob = foldProbs, replace = T)
+      treatedSimData <- round(treatedSimData * DEgenes)
+      simData <- cbind(controlSimData, treatedSimData)
+      colnames(simData) <- c(paste("control", 1:nControls,
+                                   sep = "_"), paste("treated", 1:nSamples, sep = "_"))
+      rownames(simData) <- names(fastaGenes)
+      DEgenesNames <- as.data.frame(cbind(names(fastaGenes),DEgenes), stringsAsFactors = F)
+    }
+  }
+  else {
     DEgenes <- NULL
     DEgenesNames <- NULL
   }
-
-  # now, downsize each of the samples to the corresponding number of reads
-  # we downsize the number of reads for this genome, according to the reads of each sample
-  reducedSimData <- sampleReads(countMatrix=simData,
-                                readNumber=c(unlist(genomeReadMatrix[genomeName,])))
+  reducedSimData <- sampleReads(countMatrix = simData, readNumber = c(unlist(genomeReadMatrix[genomeName,])))
   reducedSimData[is.na(reducedSimData)] <- 0
-  # make final object collecting all the info from the simulation of this genome
-  simulatedGenome=list(simulationData=reducedSimData, DEgenes=DEgenesNames,
-                       numSamples=nSamples, numControls=nControls)
-  ##TODO: check seeds and include in the info for reproducibility
+  simulatedGenome = list(simulationData = reducedSimData, DEgenes = DEgenesNames,
+                         numSamples = nSamples, numControls = nControls)
   return(simulatedGenome)
 }
 
@@ -261,6 +248,7 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
 #'                                                foldChanges=c(0.5,1,2),
 #'                                                foldProbs=c(10,80,10),
 #'                                                nSamples=5, nControls=5)
+<<<<<<< HEAD
 simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatrix=NULL,
                                       DE=F, foldChanges=NULL, foldProbs=NULL,
                                       nSamples=NULL, nControls=NULL, seed=42){
@@ -293,6 +281,32 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
     simulatedDataSet$DEgenes <- rbind(simulatedDataSet$DEgenes, singleGenome$DEgenes)
   }
   return(simulatedDataSet)
+=======
+simulateMetaTranscriptome=function(genomeFileDir, genomeReadMatrix, modelMatrix = NULL, DE = F, foldChanges = NULL, foldProbs = NULL, nSamples = NULL, nControls = NULL, seed = 42)
+{
+    simulatedDataSet <- list(simulationData = NULL, DEgenes = NULL,
+        nSamples = nSamples, nControls = nControls)
+    for (i in 1:nrow(genomeReadMatrix)) {
+        genomeName <- rownames(genomeReadMatrix)[i]
+        fastaFile <- c(file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],
+            ".fa", sep = "")), file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],
+            ".fasta", sep = "")), file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],
+            ".fna", sep = "")), file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],
+            ".genes.fa", sep = "")), file.path(genomeFileDir,
+            paste(rownames(genomeReadMatrix)[i], ".genes.fasta",
+                sep = "")), file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],
+            ".genes.fna", sep = "")))
+        fastaFile <- fastaFile[file.exists(fastaFile)]
+        singleGenome <- simulateSingleGenome(genomeName, fasta = fastaFile,
+            genomeReadMatrix, modelMatrix, DE, foldChanges, foldProbs,
+            nSamples, nControls, seed)
+        simulatedDataSet$simulationData <- rbind(simulatedDataSet$simulationData,
+            singleGenome$simulationData)
+        simulatedDataSet$DEgenes <- rbind(simulatedDataSet$DEgenes,
+            singleGenome$DEgenes)
+    }
+    return(simulatedDataSet)
+>>>>>>> af85328a9ffd4aa88735d38bdb7025c3057551e7
 }
 
 
@@ -390,6 +404,7 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #'
 #' # Finally, generate the fasta files and write them to the output directory
 #' \donttest{simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
+<<<<<<< HEAD
 #'                    genomeReadMatrix=genomeReadMatrix, outdir=".")}
 simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix, outdir=".",
 				paired=T, seed=42, distr="empirical", error_model="illumina5",
@@ -434,6 +449,53 @@ simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix
               row.names=T, quote=F, sep="\t")
   write.table(simulatedDataSet$DEgenes, file=out_DEgenes, col.names=F, row.names=F,
               quote=F, sep="\t")
+=======
+#'                    outdir=".")}
+simulateFastaReads=function (genomeFileDir, simulatedDataSet, genomeReadMatrix, outdir = ".", paired = T, 
+    seed = 42, distr = "empirical", error_model = "illumina5", 
+    bias = "rnaf", strand_specific = T ) 
+{
+    fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
+    if (file.exists(fastaFullFile)) {
+        system(paste("rm", fastaFullFile, sep = " "))
+    }
+    fastaFiles <- unique(c(list.files(genomeFileDir, pattern = ".fasta", 
+        full.names = T), list.files(genomeFileDir, pattern = ".fa", 
+        full.names = T), list.files(genomeFileDir, pattern = ".fna", 
+        full.names = T), list.files(genomeFileDir, pattern = ".genes.fasta", 
+        full.names = T), list.files(genomeFileDir, pattern = ".genes.fa", 
+        full.names = T), list.files(genomeFileDir, pattern = ".genes.fna", 
+        full.names = T)))
+    selectedfastaFiles <- c()
+    for (i in 1:nrow(genomeReadMatrix)) {
+      selectedfile <- c(file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fa", sep = "")),
+                           file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fasta", sep = "")),
+                           file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".fna", sep = "")),
+                           file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fa", sep = "")),
+                           file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fasta",sep = "")),
+                           file.path(genomeFileDir, paste(rownames(genomeReadMatrix)[i],".genes.fna", sep = "")))
+      selectedfastaFiles <- append(selectedfastaFiles, selectedfile[file.exists(selectedfile)])
+    }
+    fastaFiles <- fastaFiles[fastaFiles %in% selectedfastaFiles]
+    for (file in fastaFiles) {
+        system(paste("cat", file, ">>", fastaFullFile, sep = " "))
+    }
+    countMatrix <- as.matrix(simulatedDataSet$simulationData)
+    rownames(countMatrix)
+    if (!dir.exists(outdir)) {
+        dir.create(outdir)
+    }
+    simulate_experiment_countmat(fasta = fastaFullFile, readmat = countMatrix, 
+        outdir = outdir, paired = paired, seed = seed, distr = distr, 
+        error_model = error_model, bias = bias, strand_specific = T)
+    system(paste("rm", fastaFullFile, sep = " "))
+    out_countMatrix <- file.path(outdir, "countMatrix.txt")
+    out_DEgenes <- file.path(outdir, "DEgenes.txt")
+    write.table(simulatedDataSet$simulationData, file = out_countMatrix, 
+        col.names = T, row.names = T, quote = F, sep = "\t")
+    write.table(simulatedDataSet$DEgenes, file = out_DEgenes, 
+        col.names = F, row.names = F, quote = F, sep = "\t")
+>>>>>>> af85328a9ffd4aa88735d38bdb7025c3057551e7
 }
 
 
