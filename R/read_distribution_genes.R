@@ -112,7 +112,11 @@ simulateSingleGenome=function(genomeName, fasta, genomeReadMatrix, modelMatrix=N
   # now, randomly assign expression from some genes of the pasilla dataset
   # to the genes of the simulated bacteria
   numGenesToSimulate <- length(fastaGenes)
-  countsBacteria <- modelMatrix[sample(numGenesToSimulate, replace = TRUE),]
+  countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
+  ## While there are less than four unique 'x' values in countsBacteria, repeat sampling
+  while( length(unique(countsBacteria$untreated1))<4 || length(unique(countsBacteria$untreated2))<4 || length(unique(countsBacteria$untreated3))<4 || length(unique(countsBacteria$untreated4))<4){
+	countsBacteria <- modelMatrix[sample(1:nrow(modelMatrix), size=numGenesToSimulate, replace = TRUE),]
+	}
 
   # get parameters from this sampling
   par <- get_params(countsBacteria)
@@ -262,6 +266,9 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
                                       nSamples=NULL, nControls=NULL, seed=42){
   simulatedDataSet <- list(simulationData=NULL, DEgenes=NULL, nSamples=nSamples,
                            nControls=nControls)
+  ## if not all the genomes in genomeReadMatrix are used, remove the genome from matrix
+  genomeReadMatrix[,"sum"] <- rowSums(genomeReadMatrix)
+  genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0,-ncol(genomeReadMatrix)]
   for(i in 1:nrow(genomeReadMatrix)){
     genomeName <- rownames(genomeReadMatrix)[i]
     # check all possible fasta file extensions
@@ -384,21 +391,28 @@ simulateMetaTranscriptome <- function(genomeFileDir, genomeReadMatrix, modelMatr
 #' # Finally, generate the fasta files and write them to the output directory
 #' \donttest{simulateFastaReads(genomeFileDir=genomesFolder, simulatedDataSet=metatranscriptome,
 #'                    outdir=".")}
-simulateFastaReads <- function(genomeFileDir, simulatedDataSet, outdir=".", paired=T,
-                               seed=42, distr="empirical", error_model="illumina5",
+simulateFastaReads <- function(genomeFileDir, simulatedDataSet, genomeReadMatrix, outdir=".",
+                               paired=T, seed=42, distr="empirical", error_model="illumina5",
                                bias="rnaf", strand_specific=T){
+  ## if not all the genomes in genomeReadMatrix are used, remove the genomes from matrix
+  genomeReadMatrix[, "sum"] <- rowSums(genomeReadMatrix)
+  genomeReadMatrix <- genomeReadMatrix[genomeReadMatrix$sum != 0, -ncol(genomeReadMatrix)]
   ## if pre-existing, remove fasta file with all genomes
   fastaFullFile <- file.path(genomeFileDir, ".tmpFile_allFastas.fa")
   if(file.exists(fastaFullFile)){
     system(paste("rm", fastaFullFile, sep=" "))
   }
-  ## first, generate a fasta from all the fasta files in genomeFileDir
-  fastaFiles <- unique(c(list.files(genomeFileDir, pattern = ".fasta", full.names = T),
-                      list.files(genomeFileDir, pattern = ".fa", full.names = T),
-                      list.files(genomeFileDir, pattern = ".fna", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fasta", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fa", full.names = T),
-                      list.files(genomeFileDir, pattern = ".genes.fna", full.names = T)))
+  ## first, generate a fasta from all the fasta files in genomeReadMatrix genome
+  fastaFiles <- c()
+  for (i in 1:nrow(genomeReadMatrix)){
+	selectedfile <- c(file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fa")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fasta")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".fna")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fa")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fasta")),
+			file.path(genomeFileDir, paste0(rownames(genomeReadMatrix)[i],".genes.fna")))
+	fastaFiles <- append(fastaFiles, selectedfile[file.exists(selectedfile)])
+  }
   for(file in fastaFiles){
     system(paste("cat", file, ">>", fastaFullFile, sep=" "))
   }
